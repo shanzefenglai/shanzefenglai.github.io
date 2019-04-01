@@ -1,3 +1,4 @@
+
 <div class="copyright">{#
 #}{% set current = date(Date.now(), "YYYY") %}{#
 #}{% if theme.footer.beian.enable %}{#
@@ -9,6 +10,7 @@
     <i class="fa fa-{{ theme.footer.icon.name }}"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">{{ theme.footer.copyright || author }}</span>
+
 
   {% if config.symbols_count_time.total_symbols %}
     <span class="post-meta-divider">|</span>
@@ -60,3 +62,6 @@
   #}{{ theme.footer.custom_text }}{#
 #}</div>
 {% endif %}
+
+
+
