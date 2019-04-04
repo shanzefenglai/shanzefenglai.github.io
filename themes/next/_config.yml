@@ -1210,7 +1210,3 @@ vendors:
 css: css
 js: js
 images: images
-
-# Online contact
-daovoice: true
-daovoice_app_id: ccf5c711  # 这里填你刚才获得的 app_id
