@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>理解协程 | 山风's blog</title><meta name="author" content="山风"><meta name="copyright" content="山风"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="协程是一种轻量级的线程，也被称为用户态线程。它是由程序控制而不是操作系统内核来进行调度和管理的。 协程的特点包括：  轻量级：协程切换和创建的开销很小，可以同时运行大量的协程 高效性：协程的切换是由程序控制的，无需进行用户态到内核态的切换，因此执行效率高 可以并发执行：多个协程可以同时执行，通过协程的切换和调度机制，实现并发的效果 共享资源：协程可以共享程序中的资源，如变量、文件句柄  在Go语言"><meta property="og:type" content="article"><meta property="og:title" content="理解协程"><meta property="og:url" content="https://shanzefenglai.github.io/posts/16004.html"><meta property="og:site_name" content="山风&#39;s blog"><meta property="og:description" content="协程是一种轻量级的线程，也被称为用户态线程。它是由程序控制而不是操作系统内核来进行调度和管理的。 协程的特点包括：  轻量级：协程切换和创建的开销很小，可以同时运行大量的协程 高效性：协程的切换是由程序控制的，无需进行用户态到内核态的切换，因此执行效率高 可以并发执行：多个协程可以同时执行，通过协程的切换和调度机制，实现并发的效果 共享资源：协程可以共享程序中的资源，如变量、文件句柄  在Go语言"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://shanzefenglai.github.io/img/avatar.jpg"><meta property="article:published_time" content="2024-03-17T06:23:47.000Z"><meta property="article:modified_time" content="2024-03-17T10:22:13.906Z"><meta property="article:author" content="山风"><meta property="article:tag" content="go"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://shanzefenglai.github.io/img/avatar.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://shanzefenglai.github.io/posts/16004.html"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="//busuanzi.ibruce.info"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.0.0/css/all.min.css"><link rel="stylesheet" href="/" media="print" onload='this.media="all"'><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":false,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: '/',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE={title:"理解协程",isPost:!0,isHome:!1,isHighlightShrink:!1,isToc:!1,postUpdate:"2024-03-17 18:22:13"}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror='onerror=null,src="/img/friend_404.gif"' alt="avatar"></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">37</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr class="custom-hr"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i> <span>首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i> <span>归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i> <span>标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i> <span>分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image:url(/img/top.jpg)"><nav id="nav"><span id="blog-info"><a href="/" title="山风's blog"><span class="site-name">山风's blog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i> <span>搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i> <span>首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i> <span>归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i> <span>标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i> <span>分类</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">理解协程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-17T06:23:47.000Z" title="发表于 2024-03-17 14:23:47">2024-03-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-03-17T10:22:13.906Z" title="更新于 2024-03-17 18:22:13">2024-03-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/go/">go</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">942</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="理解协程"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>协程是一种轻量级的线程，也被称为用户态线程。它是由程序控制而不是操作系统内核来进行调度和管理的。</p><p>协程的特点包括：</p><ol><li>轻量级：协程切换和创建的开销很小，可以同时运行大量的协程</li><li>高效性：协程的切换是由程序控制的，无需进行用户态到内核态的切换，因此执行效率高</li><li>可以并发执行：多个协程可以同时执行，通过协程的切换和调度机制，实现并发的效果</li><li>共享资源：协程可以共享程序中的资源，如变量、文件句柄</li></ol><p>在Go语言中，协程并称为goroutine， 通过使用关键字<code>go</code> 可以创建一个新的goroutine，并在其中运行函数。</p><p>一个简单的异步协程的例子：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> (rsp, <span class="type">error</span>) &#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		err = svc.task()</span><br><span class="line">		</span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="keyword">return</span> rsp, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>上面的代码在testFunc函数中创建了一个协程，协程中执行task方法，在协程执行完成前，直接返回rsp和error。</p><p>如果需要等待协程执行完成后再执行其他逻辑，可以添加waitGroup进行等待。在协程开始前wg.Add(1)增加等待计数， 每个协程结束后wg.Done()减少等待计数，使用wg.Wait等待所有协程完成，并在所有协程完成之后返回success。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">	<span class="keyword">var</span> wg sync.WaitGroup <span class="comment">// 用于控制并发的 WaitGroup</span></span><br><span class="line">	success := <span class="literal">true</span></span><br><span class="line">	<span class="keyword">for</span> a, b:= <span class="keyword">range</span> xxx&#123;</span><br><span class="line">		wg.Add(<span class="number">1</span>) <span class="comment">// 增加一个等待计数</span></span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(astring, b[]<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>)</span></span> &#123;</span><br><span class="line">			<span class="keyword">defer</span> wg.Done() <span class="comment">// 在函数结束时减少等待计数</span></span><br><span class="line">			...</span><br><span class="line">		&#125;(a, b)</span><br><span class="line">	&#125;</span><br><span class="line">	wg.Wait() <span class="comment">// 等待所有协程完成</span></span><br><span class="line">	<span class="keyword">return</span> success</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>如果需要在协程间传递数据，可以用channel或者atomic来实现。func1将数据写入channel， func2从channel中读取数据。需要注意的是：</p><ol><li>在使用channel前，一定要先进行初始化。未初始换的channel是nil， 对它进行操作会导致panic。通常使用<code>make</code>关键字定义一个channel。</li><li>不要重复关闭channel。对已经关闭的channel再次关闭会导致panic。</li><li>不要关闭未空的channel。关闭一个未空的channel会导致其中的数据丢失。</li><li>避免向已关闭的channel发送、接收数据。前者会导致pannic， 后者会导致返回通道类型的零值。</li><li>在需要同步处理数据时，使用无缓冲channel， 在异步处理数据时，使用带缓冲的channel避免发送和接收操作之间的阻塞。</li><li>在协程结束后需要关闭channel。</li></ol><p>而atomic包是原子操作包，无需加锁对整数进行安全的加减、比较、读取操作。atomic包中的atomic.Value类型，也可以存储<code>c.Store(value)</code>和加载<code>c.Load()</code>任意类型的值。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">mainFunc</span><span class="params">(xxx)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> []<span class="type">string</span>, <span class="number">5</span>)</span><br><span class="line">	doneCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">	<span class="keyword">var</span> wg sync.WaitGroup</span><br><span class="line">	count1:= <span class="type">int64</span>(<span class="number">5</span>)</span><br><span class="line">	count2:= <span class="type">int64</span>(<span class="number">5</span>)</span><br><span class="line">	wg.Add(<span class="number">2</span>)</span><br><span class="line">	<span class="keyword">go</span> func1(ch, &amp;wg, &amp;count1)</span><br><span class="line">	<span class="keyword">go</span> func2(ch, &amp;wg, &amp;count1, &amp;count2)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		wg.Wait()</span><br><span class="line">		<span class="built_in">close</span>(doneCh)</span><br><span class="line">		<span class="built_in">close</span>(ch)</span><br><span class="line">	&#125;()</span><br><span class="line">	&lt;-doneCh</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">func1</span><span class="params">(ch <span class="keyword">chan</span>&lt;- []<span class="type">string</span>, wg *sync.WaitGroup, count1 *<span class="type">int64</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> wg.Done()</span><br><span class="line">	ticker := time.NewTicker(<span class="number">400</span> * time.Millisecond)</span><br><span class="line">	<span class="keyword">defer</span> ticker.Stop()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-ticker.C:</span><br><span class="line">			...</span><br><span class="line">			</span><br><span class="line">			ids:= createTask(count1)</span><br><span class="line">			<span class="keyword">if</span> ids!= <span class="literal">nil</span> &#123;</span><br><span class="line">				ch&lt;- ids</span><br><span class="line">				...</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createTask</span><span class="params">(count1 *<span class="type">int64</span>)</span></span> []<span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">var</span> ids[]<span class="type">string</span></span><br><span class="line">    ...</span><br><span class="line">	<span class="keyword">for</span> _, xxx:= <span class="keyword">range</span> xxx &#123;</span><br><span class="line">		atomic.AddInt64(count1 , <span class="number">-1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ids</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span>  <span class="title">func2</span><span class="params">(ch <span class="keyword">chan</span> []<span class="type">string</span>, wg *sync.WaitGroup, count1 *<span class="type">int64</span>, count2 *<span class="type">int64</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">defer</span> wg.Done()</span><br><span class="line">	ticker := time.NewTicker(<span class="number">80</span> * time.Millisecond)</span><br><span class="line">	<span class="keyword">defer</span> ticker.Stop()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">		<span class="keyword">case</span> &lt;-ticker.C:</span><br><span class="line">			<span class="keyword">select</span> &#123;</span><br><span class="line">			<span class="keyword">case</span> ids:= &lt;-ch:</span><br><span class="line">				...</span><br><span class="line">                <span class="keyword">if</span> <span class="built_in">len</span>(ids) == <span class="number">0</span> &amp;&amp; *count1 == <span class="number">0</span> &amp;&amp; *count2 == <span class="number">0</span> &#123;</span><br><span class="line">					<span class="keyword">return</span></span><br><span class="line">				&#125;</span><br><span class="line">				newIds := taskResult(ids, count2)</span><br><span class="line">				ids = <span class="built_in">append</span>(newIds, ids[end:]...)</span><br><span class="line">				ch &lt;- ids</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span>  <span class="title">taskResult</span><span class="params">(ids []<span class="type">string</span>, count2 *<span class="type">int64</span>)</span></span> (newIds []<span class="type">string</span>) &#123;</span><br><span class="line">    ...</span><br><span class="line">	<span class="keyword">for</span> _, xxx := <span class="keyword">range</span> xxx &#123;</span><br><span class="line">		<span class="keyword">if</span> xxx &#123; </span><br><span class="line">			xxx</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	</span><br><span class="line">			atomic.AddInt64(count2, <span class="number">-1</span>)</span><br><span class="line">		&#125;</span><br><span class="line">        ...</span><br><span class="line">		success := <span class="literal">true</span></span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者:</span> <span class="post-copyright-info"><a href="https://shanzefenglai.github.io">山风</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接:</span> <span class="post-copyright-info"><a href="https://shanzefenglai.github.io/posts/16004.html">https://shanzefenglai.github.io/posts/16004.html</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明:</span> <span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://shanzefenglai.github.io" target="_blank">山风's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/go/">go</a></div><div class="post_share"><div class="social-share" data-image="/img/avatar.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload='this.media="all"'><script src="https://cdn.jsdelivr.net/gh/overtrue/share.js@master/dist/js/social-share.min.js" defer="defer"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>赞助</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="wechat"></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="alipay"></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/43395.html" title="go创建变量的方法"><div class="cover" style="background:var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">go创建变量的方法</div></div></a></div><div class="next-post pull-right"><a href="/posts/14276.html" title="理解上下文"><div class="cover" style="background:var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">理解上下文</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/43395.html" title="go创建变量的方法"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">go创建变量的方法</div></div></a></div><div><a href="/posts/45128.html" title="go接口和多态"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">go接口和多态</div></div></a></div><div><a href="/posts/43394.html" title="go数据类型"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">go数据类型</div></div></a></div><div><a href="/posts/54045.html" title="go流程控制"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">go流程控制</div></div></a></div><div><a href="/posts/57655.html" title="go结构体"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">go结构体</div></div></a></div><div><a href="/posts/21872.html" title="oss分片上传"><div class="cover" style="background:var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-17</div><div class="title">oss分片上传</div></div></a></div></div></div><hr class="custom-hr"><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i> <span>评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror='this.onerror=null,this.src="/img/friend_404.gif"' alt="avatar"></div><div class="author-info__name">山风</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">37</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/shanzefenglai" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/yuria.ay@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">平凡朴素的毛绒绒们是治愈人心的世界第一名。</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/21872.html" title="oss分片上传">oss分片上传</a><time datetime="2024-03-17T10:22:13.898Z" title="发表于 2024-03-17 18:22:13">2024-03-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/14276.html" title="理解上下文">理解上下文</a><time datetime="2024-03-17T06:25:44.000Z" title="发表于 2024-03-17 14:25:44">2024-03-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/16004.html" title="理解协程">理解协程</a><time datetime="2024-03-17T06:23:47.000Z" title="发表于 2024-03-17 14:23:47">2024-03-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/43395.html" title="go创建变量的方法">go创建变量的方法</a><time datetime="2024-03-17T06:18:54.000Z" title="发表于 2024-03-17 14:18:54">2024-03-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/45128.html" title="go接口和多态">go接口和多态</a><time datetime="2024-03-17T06:16:08.000Z" title="发表于 2024-03-17 14:16:08">2024-03-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image:url(/img/top.jpg)"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024 By 山风</div><div class="framework-info"><span>框架</span> <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题</span> <a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+  if ($mermaid.length === 0) return
+  const runMermaid = () => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    Array.from($mermaid).forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = '%%{init:{ \'theme\':\'' + theme + '\'}}%%\n'
+      const mermaidID = 'mermaid-' + index
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+
+      const renderV10 = () => {
+        renderFn.then(({svg}) => {
+          mermaidSrc.insertAdjacentHTML('afterend', svg)
+        })
+      }
+
+      const renderV9 = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      typeof renderFn === 'string' ? renderV9(renderFn) : renderV10()
+    })
+  }
+
+  const loadMermaid = () => {
+    window.loadMermaid ? runMermaid() : getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaid)
+  }
+
+  btf.addGlobalFn('themeChange', runMermaid, 'mermaid')
+
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script><script>(()=>{
+  const getGiscusTheme = theme => {
+    return theme === 'dark' ? 'dark' : 'light'
+  }
+
+  const loadGiscus = () => {
+    const config = Object.assign({
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'shanzefenglai/shanzefenglai.github.io',
+      'data-repo-id': 'R_kgDOHL22yA',
+      'data-category-id': 'DIC_kwDOHL22yM4COnA5',
+      'data-mapping': 'pathname',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true
+    },{"data-lang":"zh-CN","data-mapping":"title","data-category":"General","data-reactions-enabled":0,"data-emit-metadata":0,"data-loading":"lazy","data-input-position":"top","crossorigin":"anonymous"})
+
+    const ele = document.createElement('script')
+    for (let key in config) {
+      ele.setAttribute(key, config[key])
+    }
+    document.getElementById('giscus-wrap').appendChild(ele)
+  }
+
+  const changeGiscusTheme = theme => {
+    const sendMessage = message => {
+      const iframe = document.querySelector('iframe.giscus-frame')
+      if (!iframe) return
+      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app')
+    }
+
+    sendMessage({
+      setConfig: {
+        theme: getGiscusTheme(theme)
+      }
+    });
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment= loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i> <span>数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"></div></div><hr><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
